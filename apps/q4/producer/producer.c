@@ -34,17 +34,29 @@ void main (int argc, char *argv[]){
         //produce item
         char c = payload[i];
 
-        lock_acquire(cb->lock);
+        if(lock_acquire(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_acquire(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }
         while (((cb->head + 1) % BUFFER_SIZE == cb->tail)) {
         //buffer is full
-            cond_wait(cb->cond_not_full);
+            if(cond_wait(cb->cond_not_full) != SYNC_SUCCESS) {
+                Printf("Bad cond_wait(cb->cond_not_full)"); Printf(", exiting...\n");
+                Exit();
+            }
         }
         cb->buffer[cb->head] = c;
         cb->head = (cb->head+ 1) % BUFFER_SIZE;
         Printf("Producer %d inserted: %c\n", Getpid(), c);
 
-        cond_signal(cb->cond_not_empty);
-        lock_release(cb->lock);
+        if(cond_signal(cb->cond_not_empty) != SYNC_SUCCESS) {
+            Printf("Bad cond_signal(cb->cond_not_empty)"); Printf(", exiting...\n");
+            Exit();
+        }
+        if(lock_release(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }
         i++;
     }
 

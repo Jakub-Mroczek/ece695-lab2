@@ -376,7 +376,7 @@ cond_t CondCreate(lock_t lock) {
   uint32 intrval;
 
   if(lock < 0 || lock >=MAX_LOCKS || !locks[lock].inuse) {
-    return INVALID_COND;
+    return SYNC_FAIL;
   }
 
   // grabbing a cond should be an atomic operation
@@ -388,7 +388,7 @@ cond_t CondCreate(lock_t lock) {
     }
   }
   RestoreIntrs(intrval);
-  if(cond==MAX_CONDS) return INVALID_COND;
+  if(cond==MAX_CONDS) return SYNC_FAIL;
 
   if (AQueueInit (&conds[cond].wait_q) != QUEUE_SUCCESS) {
     printf("FATAL ERROR: could not initialize CV waiting queue!\n");

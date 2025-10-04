@@ -35,24 +35,39 @@ void main (int argc, char *argv[]){
         //item to consume
         char c = payload[i];
 
-        lock_acquire(cb->lock);
-        
+        if(lock_acquire(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_acquire(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }
+
         while ((cb->head == cb->tail)) {
         // buffer is empty
-            cond_wait(cb->cond_not_empty);
+            if(cond_wait(cb->cond_not_empty) != SYNC_SUCCESS) {
+                Printf("Bad cond_wait(cb->cond_not_empty)"); Printf(", exiting...\n");
+                Exit();
+            }
         }
         if ((cb->buffer[cb->tail] == c)) {
         //buffer has char were seeking
             removed = cb->buffer[cb->tail];
             cb->tail = (cb->tail+ 1) % BUFFER_SIZE;
             Printf("Consumer %d removed: %c\n", Getpid(), removed);
-            cond_signal(cb->cond_not_full);
+            if(cond_signal(cb->cond_not_full) != SYNC_SUCCESS) {
+                Printf("Bad cond_signal(cb->cond_not_full)"); Printf(", exiting...\n");
+                Exit();
+            }    
             i++;
         }
         else {
-            cond_signal(cb->cond_not_empty);
+            if(cond_signal(cb->cond_not_empty) != SYNC_SUCCESS) {
+                Printf("Bad cond_signal(cb->cond_not_empty)"); Printf(", exiting...\n");
+                Exit();
+            }    
         }
-        lock_release(cb->lock);
+        if(lock_release(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }    
     }
 
     Printf("consumer: Consumer with PID %d is complete\n", Getpid());

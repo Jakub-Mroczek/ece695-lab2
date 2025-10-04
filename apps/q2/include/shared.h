@@ -6,7 +6,7 @@
 #include "lab2-api.h"
 #include "usertraps.h"
 
-#define BUFFER_SIZE 3
+#define BUFFER_SIZE 32
 #define PRODUCER_OBJ "producer.dlx.obj"
 #define CONSUMER_OBJ "consumer.dlx.obj"
 

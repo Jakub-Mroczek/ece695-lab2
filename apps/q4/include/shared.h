@@ -6,7 +6,7 @@
 #include "lab2-api.h"
 #include "usertraps.h"
 
-#define BUFFER_SIZE 3 // buffer effective capacity is (N - 1), so minimum size of 2 must be used
+#define BUFFER_SIZE 32 // buffer effective capacity is (N - 1), so minimum size of 2 must be used
 #define PAYLOAD_LEN 10 // "0123456789"
 #define PAYLOAD "0123456789"
 #define PRODUCER_OBJ "producer.dlx.obj"
