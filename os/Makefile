@@ -131,7 +131,7 @@ clean:
 
 # Changes to a given application and runs it via that app's Makefile
 run:
-	-cd ../apps/q4; make run
+	-cd ../apps/q5; make run
 
 # Includes added dependencies of source files on header files
 include Makefile.depend

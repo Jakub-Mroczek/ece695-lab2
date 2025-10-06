@@ -11,6 +11,10 @@ void main (int argc, char *argv[])
   int molecule_types = 5;
   int num_n3 = 0;
   int num_h2o = 0;
+  int num_n = 0;
+  int num_h2 = 0;
+  int num_o2 = 0;
+  int num_no2 = 0;
   int i;                          // Loop index variable
   atoms *a;                       // Used to get address of shared memory page
   uint32 h_mem;                   // Used to hold handle to shared memory page
@@ -61,6 +65,11 @@ void main (int argc, char *argv[])
 
   a->num_n3 = num_n3;
   a->num_h2o = num_h2o;
+  a->num_n = num_n3*3;        // 3 N atoms per N3 molecule
+  a->num_h2 = (num_h2o/2)*2;  // 2 H2 molecues per 2 H2O molecules
+  a->num_o2 = (num_h2o/2);
+  a->num_no2 = (a->num_n < a->num_o2) ? a->num_n : a->num_o2; // min(num_n, num_o2)
+
   a->s_n3 = s_n3;
   a->s_h2o = s_h2o;  
   a->s_n = s_n;

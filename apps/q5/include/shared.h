@@ -15,6 +15,10 @@
 typedef struct atoms {
   int num_n3;
   int num_h2o;
+  int num_n;
+  int num_h2;
+  int num_o2;
+  int num_no2;
   sem_t s_n3;
   sem_t s_h2o;
   sem_t s_n;

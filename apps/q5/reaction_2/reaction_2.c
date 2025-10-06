@@ -6,6 +6,7 @@
 
 void main (int argc, char *argv[]){
     int i;
+    int j;
     atoms *a;
     uint32 h_mem;
     sem_t s_procs_completed;
@@ -26,21 +27,38 @@ void main (int argc, char *argv[]){
     }
 
     // Now print a message to show that everything worked
-    // Printf("n3_inject: n3_inject with PID %d created\n", Getpid());
+    // Printf("reaction_2: reaction_2 with PID %d created\n", Getpid());
 
     i = 0;
-    while(i < a->num_n3) {
-        if(sem_signal(a->s_n3) != SYNC_SUCCESS) {
-            Printf("Bad sem_signal(s_n3)"); Printf(", exiting...\n");
+    while(i < a->num_h2o/2) { // each 2 H2O molecules produces 2 H2 and 1 O2
+        if(sem_wait(a->s_h2o) != SYNC_SUCCESS) {
+            Printf("Bad sem_wait(s_h2o)"); Printf(", exiting...\n");
+            Exit();
+        }
+        if(sem_wait(a->s_h2o) != SYNC_SUCCESS) {
+            Printf("Bad sem_wait(s_h2o)"); Printf(", exiting...\n");
+            Exit();
+        }
+        for(j = 0; j < 2; j++) { // 2 H2O molecules produces 2 H2
+            if(sem_signal(a->s_h2) != SYNC_SUCCESS) {
+                Printf("Bad sem_signal(s_h2)"); Printf(", exiting...\n");
+                Exit();
+            }
+            else {
+               Printf("An H2 molecule is created\n");
+            }
+        }
+        if(sem_signal(a->s_o2) != SYNC_SUCCESS) {
+            Printf("Bad sem_signal(s_o2)"); Printf(", exiting...\n");
             Exit();
         }
         else {
-           Printf("An N3 molecule is created\n");
+            Printf("An O2 molecule is created\n");
         }
         i++;
     }
 
-    // Printf("n3_inject: n3_inject with PID %d is complete\n", Getpid());
+    // Printf("reaction_2: reaction_2 with PID %d is complete\n", Getpid());
     if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
         Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
         Exit();
