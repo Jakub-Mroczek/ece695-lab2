@@ -15,7 +15,7 @@ void main (int argc, char *argv[])
   sem_t s_procs_completed;        // Semaphore used to wait until all spawned processes have completed
   char h_mem_str[10];             // Used as command-line argument to pass mem_handle to new processes
   char s_procs_completed_str[10]; // Used as command-line argument to pass page_mapped handle to new processes
-  lock_t lock = lock_create();
+  lock_t lock;
 
   Printf("Q2 running\n");
 
@@ -43,16 +43,17 @@ void main (int argc, char *argv[])
   }
 
   // Put some values in the shared memory, to be read by other processes
+  if ((lock = lock_create()) == SYNC_FAIL) {
+    Printf("Bad lock_create lock in "); Printf(argv[0]); Printf("\n");
+    Exit();
+  }
+
   cb->head = 0;
   cb->tail = 0;
   cb->lock = lock;
 
   // Create semaphore to not exit this process until all other processes 
-  // have signalled that they are complete.  To do this, we will initialize
-  // the semaphore to (-1) * (number of signals), where "number of signals"
-  // should be equal to the number of processes we're spawning - 1.  Once 
-  // each of the processes has signaled, the semaphore should be back to
-  // zero and the final sem_wait below will return.
+  // have signalled that they are complete.
   if ((s_procs_completed = sem_create(-((numpairs*2)-1))) == SYNC_FAIL) {
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();

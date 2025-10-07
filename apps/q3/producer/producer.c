@@ -27,23 +27,35 @@ void main (int argc, char *argv[]){
     }
 
     // Now print a message to show that everything worked
-    Printf("producer: Producer with PID %d created\n", Getpid());
+    // Printf("producer: Producer with PID %d created\n", Getpid());
 
     for (i = 0; payload[i] != '\0'; i++) {
         //produce item
         char c = payload[i];
 
-        sem_wait(cb->s_emptyslots);
+        if(sem_wait(cb->s_emptyslots) != SYNC_SUCCESS) {
+            Printf("Bad sem_wait(cb->s_emptyslots)"); Printf(", exiting...\n");
+            Exit();
+        }
 
-        lock_acquire(cb->lock);
+        if(lock_acquire(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_acquire(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }
         cb->buffer[cb->head] = c;
-        cb->head = (cb->head+ 1) % BUFFER_SIZE;
+        cb->head = (cb->head+ 1) % BUFFERSIZE;
         Printf("Producer %d inserted: %c\n", Getpid(), c);
-        lock_release(cb->lock);
-        sem_signal(cb->s_fullslots);
+        if(lock_release(cb->lock) != SYNC_SUCCESS) {
+            Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+            Exit();
+        }    
+        if(sem_signal(cb->s_fullslots) != SYNC_SUCCESS) {
+            Printf("Bad sem_signal(cb->s_fullslots)"); Printf(", exiting...\n");
+            Exit();
+        }
     }
 
-    Printf("producer: Producer with PID %d is complete\n", Getpid());
+    // Printf("producer: Producer with PID %d is complete\n", Getpid());
     if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
         Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
         Exit();

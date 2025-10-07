@@ -1,0 +1,23 @@
+Q: How many semaphores and locks are available in DLXOS, respectively?
+A: 32 semaphores and 64 locks.
+
+Q: What are the system calls to create, acquire and release a lock?
+A: Operation      System Call                 Trap Number
+   Create Lock	   lock_create()	             trap 0x453
+   Acquire Lock   lock_acquire(lock_t lock)	 trap 0x454
+   Release Lock   lock_release(lock_t lock)	 trap 0x455
+
+Q: How is a semaphore created in DLXOS?
+A: A semaphore in DLXOS is created when a user program calls sem_create(int count). This system call triggers a software trap that switches to kernel mode and exectutes SemCreate(count). Inside SemCreate() the kernel disables interupts to make the operation atomic, searches static Sem sems[MAX_SEMS] for an unused semaphore, marks it in use, initializes the acociated semaphore/waiting queue using SemInit(&sems[i], count), and returns a handle to to the user process.
+
+Q: Explain how lock_acquire, lock_release, sem_signal and sem_wait work.
+A: lock_acquire is a system call by the user process to get exclusive access to a shared resource protected by a lock. lock_acquire triggers a software trap that calls the kernel function LockAcquire. In LockAcquire interrupts are disabled to ensure atomicity when checking the locks state. If its free, the lock gets assigned to the current process. If not, the current process is placed on the locks waiting queue and put to sleep until the lock becomes available.
+
+lock_release is a system call that triggers a trap that calls LockHandleRelease which calls LockRelease (kernel level function). The kernel checks if the user process owns the lock and if there are other processes waiting. If no processes are waiting, the lock is marked as free. If there are, the kernel removes a process from the waiting queue gives it ownership of the lock and wakes it up.
+
+sem_wait triggers a trap that calls SemHandleWait that calls the kernel level function SemWait. In SemWait interrupts are disabled and the semaphores count is checked. If the count is <0 the process cant proceed and is placed on the semaphores waiting queue and put to sleep using ProcessSleep() until another process signals the semaphore.
+
+sem_signal is a user level process that invokes SemHandleSignal which calls kernel level process SemSignal. This function signals that a resource that has become available. Inside the kernel interrupts are disabled and the semaphores count is incremented. If there are any processes waiting in the semaphores queue one of them is removed from the queue and woken it up allowing it to proceed. The count is then decremented to reflect that the awakened process is using a previously resource.
+
+Q: What is a handle and how is it used to access semaphores in DLXOS?
+A: A handle is an indedx used to refer to a kernel onject (like semaphore) from user space. Since user processes cant access the kernel directly, they are not allowed to hold real pointers to kernel data structurs. Instead, the kernel gives each process a handle which allows the user program to hold a semaphore ID which it passes to the kernel  when it wants to use that semaphore. That way, only the kernel is drectly using the semaphore object. The user process just tell the kernel what semaphore it wants to use and what action should be done (e.g. wait signal).

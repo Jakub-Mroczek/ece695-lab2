@@ -27,7 +27,7 @@ void main (int argc, char *argv[]){
     }
 
     // Now print a message to show that everything worked
-    Printf("consumer: Consumer with PID %d created\n", Getpid());
+    // Printf("consumer: Consumer with PID %d created\n", Getpid());
 
 
     for (i = 0; payload[i] != '\0'; i++) {
@@ -36,22 +36,28 @@ void main (int argc, char *argv[]){
 
         int flag = 0;
         while(flag == 0) {
-            lock_acquire(cb->lock);
+            if(lock_acquire(cb->lock) != SYNC_SUCCESS) {
+                Printf("Bad lock_acquire(cb->lock)"); Printf(", exiting...\n");
+                Exit();
+            }
             if (!(cb->head == cb->tail)) {
             // buffer is not empty
                 if(cb->buffer[cb->tail] == c) {
                 // buffer has char were seeking
                     cb->buffer[cb->tail] = '\0';
-                    cb->tail = (cb->tail+ 1) % BUFFER_SIZE;
+                    cb->tail = (cb->tail+ 1) % BUFFERSIZE;
                     flag = 1;
                     Printf("Consumer %d removed: %c\n", Getpid(), c);
                 }          
             }
-            lock_release(cb->lock);
+            if(lock_release(cb->lock) != SYNC_SUCCESS) {
+                Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+                Exit();
+            }    
         }
     }
 
-    Printf("consumer: Consumer with PID %d is complete\n", Getpid());
+    // Printf("consumer: Consumer with PID %d is complete\n", Getpid());
     if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
         Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
         Exit();

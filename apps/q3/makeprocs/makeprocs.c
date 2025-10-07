@@ -15,9 +15,9 @@ void main (int argc, char *argv[])
   sem_t s_procs_completed;        // Semaphore used to wait until all spawned processes have completed
   char h_mem_str[10];             // Used as command-line argument to pass mem_handle to new processes
   char s_procs_completed_str[10]; // Used as command-line argument to pass page_mapped handle to new processes
-  lock_t lock = lock_create();
-  sem_t s_fullslots = sem_create(0);
-  sem_t s_emptyslots = sem_create(BUFFER_SIZE);
+  lock_t lock;
+  sem_t s_fullslots;
+  sem_t s_emptyslots;
 
   Printf("Q3 running\n");
 
@@ -45,6 +45,19 @@ void main (int argc, char *argv[])
   }
 
   // Put some values in the shared memory, to be read by other processes
+  if ((lock = lock_create()) == SYNC_FAIL) {
+    Printf("Bad lock_create lock in "); Printf(argv[0]); Printf("\n");
+    Exit();
+  }
+  if ((s_fullslots = sem_create(0)) == SYNC_FAIL) {
+    Printf("Bad sem_create s_fullslots in "); Printf(argv[0]); Printf("\n");
+    Exit();
+  }
+  if ((s_emptyslots = sem_create(BUFFERSIZE)) == SYNC_FAIL) {
+    Printf("Bad sem_create s_emptyslots in "); Printf(argv[0]); Printf("\n");
+    Exit();
+  }
+
   cb->head = 0;
   cb->tail = 0;
   cb->lock = lock;

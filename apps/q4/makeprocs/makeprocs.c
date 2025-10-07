@@ -64,11 +64,7 @@ void main (int argc, char *argv[])
   cb->cond_not_full = cond_not_full;
 
   // Create semaphore to not exit this process until all other processes 
-  // have signalled that they are complete.  To do this, we will initialize
-  // the semaphore to (-1) * (number of signals), where "number of signals"
-  // should be equal to the number of processes we're spawning - 1.  Once 
-  // each of the processes has signaled, the semaphore should be back to
-  // zero and the final sem_wait below will return.
+  // have signalled that they are complete.
   if ((s_procs_completed = sem_create(-((numpairs*2)-1))) == SYNC_FAIL) {
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();

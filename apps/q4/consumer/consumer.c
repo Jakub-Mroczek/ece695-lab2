@@ -28,7 +28,7 @@ void main (int argc, char *argv[]){
     }
 
     // Now print a message to show that everything worked
-    Printf("consumer: Consumer with PID %d created\n", Getpid());
+    // Printf("consumer: Consumer with PID %d created\n", Getpid());
 
     i = 0;
     while (payload[i] != '\0') {
@@ -50,7 +50,7 @@ void main (int argc, char *argv[]){
         if ((cb->buffer[cb->tail] == c)) {
         //buffer has char were seeking
             removed = cb->buffer[cb->tail];
-            cb->tail = (cb->tail+ 1) % BUFFER_SIZE;
+            cb->tail = (cb->tail+ 1) % BUFFERSIZE;
             Printf("Consumer %d removed: %c\n", Getpid(), removed);
             if(cond_signal(cb->cond_not_full) != SYNC_SUCCESS) {
                 Printf("Bad cond_signal(cb->cond_not_full)"); Printf(", exiting...\n");
@@ -70,7 +70,7 @@ void main (int argc, char *argv[]){
         }    
     }
 
-    Printf("consumer: Consumer with PID %d is complete\n", Getpid());
+    // Printf("consumer: Consumer with PID %d is complete\n", Getpid());
     if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
         Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
         Exit();

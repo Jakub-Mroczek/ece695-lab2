@@ -27,7 +27,7 @@ void main (int argc, char *argv[]){
     }
 
     // Now print a message to show that everything worked
-    Printf("consumer: Consumer with PID %d created\n", Getpid());
+    // Printf("consumer: Consumer with PID %d created\n", Getpid());
 
     for (i = 0; payload[i] != '\0'; i++) {
         //item to consume
@@ -35,25 +35,43 @@ void main (int argc, char *argv[]){
 
         int flag = 1;
         while(flag) {
-            sem_wait(cb->s_fullslots);
-            lock_acquire(cb->lock);
+            if(sem_wait(cb->s_fullslots) != SYNC_SUCCESS) {
+                Printf("Bad sem_wait(cb->s_fullslots)"); Printf(", exiting...\n");
+                Exit();
+            }
+            if(lock_acquire(cb->lock) != SYNC_SUCCESS) {
+                Printf("Bad lock_acquire(cb->lock)"); Printf(", exiting...\n");
+                Exit();
+            }
 
             if(cb->buffer[cb->tail] == c) {
             // buffer has char were seeking
                 cb->buffer[cb->tail] = '\0';
-                cb->tail = (cb->tail+ 1) % BUFFER_SIZE;
+                cb->tail = (cb->tail+ 1) % BUFFERSIZE;
                 Printf("Consumer %d removed: %c\n", Getpid(), c);
-                lock_release(cb->lock);
-                sem_signal(cb->s_emptyslots);
+                if(lock_release(cb->lock) != SYNC_SUCCESS) {
+                    Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+                    Exit();
+                }    
+                if(sem_signal(cb->s_emptyslots) != SYNC_SUCCESS) {
+                    Printf("Bad sem_signal(cb->s_emptyslots)"); Printf(", exiting...\n");
+                    Exit();
+                }
                 flag = 0;
             } else {
-                lock_release(cb->lock);
-                sem_signal(cb->s_fullslots);
+                if(lock_release(cb->lock) != SYNC_SUCCESS) {
+                    Printf("Bad lock_release(cb->lock)"); Printf(", exiting...\n");
+                    Exit();
+                }    
+                if(sem_signal(cb->s_fullslots) != SYNC_SUCCESS) {
+                    Printf("Bad sem_signal(cb->s_fullslots)"); Printf(", exiting...\n");
+                    Exit();
+                }
             }   
         }         
     }
 
-    Printf("consumer: Consumer with PID %d is complete\n", Getpid());
+    // Printf("consumer: Consumer with PID %d is complete\n", Getpid());
     if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
         Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
         Exit();
